@@ -63,10 +63,10 @@
 // Оператор отрицания
 // ! используется для инвертирования логического значения
 
-// let weatherOutside = 'sunny';
-// if (weatherOutside !== 'sunny') {
-//     console.log('Take an umbrella');
-// } else {
-//     console.log('i want to stay at home');
-// }
+let weatherOutside = 'sunny';
+if (weatherOutside !== 'sunny') {
+    console.log('Take an umbrella');
+} else {
+    console.log('i want to stay at home');
+}
 
