@@ -18,40 +18,93 @@ let startTime = Date.now();
 const quoteElement = document.getElementById('quote');
 const messageElement = document.getElementById('message');
 const typedValueElement = document.getElementById('typed-value');
+typedValueElement.disabled = true; // поле недоступно до старта
+typedValueElement.style.display = 'none'; // Скрыть поле ввода изначально
 
-document.getElementById('start').addEventListener('click', () => {
+const startBtn = document.getElementById('start');
+
+// Переносим логику старта игры в отдельную функцию
+function startGameHandler() {
     //получаем случайную цитату
     const quoteIndex = Math.floor(Math.random() * quotes.length);
     const quote = quotes[quoteIndex];
-    //перевод цитаты в массив слов
     words = quote.split(' ');
-    //сбрасываем индекс слова
     wordIndex = 0;
 
     //Обновление интерфейса
-    //Создание массива элементов span чтобы создать класс
     const spanWords = words.map(function(word) { return `<span> ${word} </span>`});
-    // конвертивуем массив в строку и задаем innerHTML при отображении ковычек
     quoteElement.innerHTML = spanWords.join('');
-    //выделяем первое слово
     quoteElement.childNodes[0].className = 'highlight';
-    //удаляем все предыдущие сообщения 
     messageElement.innerHTML = '';
 
     //настройка текстового поля
-    // очистка текстового поля
     typedValueElement.value = '';
-    //установка курсора в начало
+    typedValueElement.disabled = false;
+    typedValueElement.style.display = 'inline-block'; // Показать поле ввода
     typedValueElement.focus();
-    // установить обработчик событий 
+    typedValueElement.removeEventListener('input', onInput);
+    typedValueElement.addEventListener('input', onInput);
 
-    //запустить таймер
+    // Меняем кнопку на "Завершить"
+    startBtn.textContent = 'Завершить';
+    startBtn.removeEventListener('click', startGameHandler);
+    startBtn.addEventListener('click', stopGameHandler);
+
     startTime = new Date().getTime();
+}
+
+// Функция остановки игры
+function stopGameHandler() {
+    typedValueElement.disabled = true;
+    typedValueElement.style.display = 'none'; // Скрыть поле ввода
+    startBtn.textContent = 'Старт'; // Вернуть текст кнопки
+    startBtn.removeEventListener('click', stopGameHandler);
+    startBtn.addEventListener('click', startGameHandler);
+    messageElement.innerHTML = 'Игра остановлена.';
+}
+
+// Назначаем обработчик на кнопку при загрузке
+startBtn.removeEventListener('click', stopGameHandler);
+startBtn.addEventListener('click', startGameHandler);
+
+function saveRecord(seconds) {
+    let records = JSON.parse(localStorage.getItem('typingRecords') || '[]');
+    records.push(seconds);
+    records.sort((a, b) => a - b); // сортировка по возрастанию
+    records = records.slice(0, 5); // только топ-5
+    localStorage.setItem('typingRecords', JSON.stringify(records));
+    showRecords();
+}
+
+function showRecords() {
+    const recordsList = document.getElementById('records-list');
+    let records = JSON.parse(localStorage.getItem('typingRecords') || '[]');
+    recordsList.innerHTML = '';
+    if (records.length === 0) {
+        recordsList.innerHTML = '<li>Нет рекордов</li>';
+    } else {
+        records.forEach((rec, idx) => {
+            recordsList.innerHTML += `<li>${idx+1}) ${rec.toFixed(2)} сек.</li>`;
+        });
+    }
+}
+
+// Показываем рекорды при загрузке страницы
+showRecords();
+
+function showSuccessModal(message) {
+    const modal = document.getElementById('success-modal');
+    const modalMsg = document.getElementById('modal-message');
+    modalMsg.textContent = message;
+    modal.style.display = 'flex';
+}
+
+document.getElementById('close-modal').addEventListener('click', () => {
+    document.getElementById('success-modal').style.display = 'none';
 });
 
-//логика ввода
-
-typedValueElement.addEventListener('input', () => {
+// логика ввода
+function onInput() {
     // получение текущего слова
     const currentWord = words[wordIndex];
     // получение текущего значения 
@@ -59,10 +112,18 @@ typedValueElement.addEventListener('input', () => {
 
     if (typedValue === currentWord && wordIndex === words.length -1) {
         // конец предложения
-        // Вывод успеха
         const elapsedTime = new Date().getTime() - startTime;
-        const message = `Congratulations! You finished in ${elapsedTime / 1000} seconds.`;
+        const seconds = elapsedTime / 1000;
+        const message = `Поздравляем! Вы завершили за ${seconds.toFixed(2)} секунд.`;
         messageElement.innerHTML = message;
+        // Сохраняем рекорд
+        saveRecord(seconds);
+        // Отключить обработчик ввода
+        typedValueElement.removeEventListener('input', onInput);
+        typedValueElement.disabled = true;
+        typedValueElement.style.display = 'none'; // Скрыть поле ввода
+        // Показать модальное окно
+        showSuccessModal(message);
     } else if (typedValue.endsWith(' ') && typedValue.trim() === currentWord) {
         //конец слова
         // очистка typedValueElement для нового слова
@@ -76,13 +137,13 @@ typedValueElement.addEventListener('input', () => {
         //выделить новое слово
         quoteElement.childNodes[wordIndex].className = 'highlight';
     } else if (currentWord.startsWith(typedValue)) {
-        //в данном времени правильно
+        //в данном времени правильно    
         // выделить следующее слово
         typedValueElement.className = '';
     } else {
         //состояние ошибки
         typedValueElement.className = 'error';
     }
-});
+}
 
 

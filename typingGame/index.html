@@ -13,10 +13,21 @@
         <p id="quote"></p> <!-- This will display our quote -->
         <p id="message"></p> <!-- This will display any status messages -->
         <div>
-            <input type="text" area-label="current word" id="typed-value"> <!-- The textbox for typing -->
-            <button type="button" id="start">Start</button> <!-- To start the game -->
+            <input type="text" area-label="current word" id="typed-value">
+            <button type="button" id="start">Start</button>
+        </div>
+        <div id="records" style="margin-top:20px; width:100%; text-align:center;">
+            <h3>Ваши рекорды</h3>
+            <ul id="records-list" style="list-style:none; padding:0;"></ul>
         </div>
     </div>   
+    <div id="success-modal" style="display:none;" class="modal-bg">
+      <div class="modal-content">
+        <span id="modal-message"></span>
+        <br>
+        <button id="close-modal">OK</button>
+      </div>
+    </div>
     <footer class="footer-glass">
         <span>&copy; 2025 MNB Practise</span>
     </footer>
